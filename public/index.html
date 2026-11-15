@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Humanizer · remove AI writing tells</title>
+  <meta name="description" content="Rewrite AI-sounding text so it reads like a person wrote it." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23ff7a59'/%3E%3Ctext x='16' y='22' font-size='17' text-anchor='middle' font-family='Georgia' fill='white'%3EH%3C/text%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">H</span>
+      <div>
+        <h1>Humanizer</h1>
+        <p class="tagline">Strip the AI tells. Keep what it says.</p>
+      </div>
+    </div>
+    <button id="logoutBtn" class="ghost hidden" type="button">Sign out</button>
+  </header>
+
+  <!-- Login -->
+  <main id="loginView" class="login hidden">
+    <form id="loginForm" class="card login-card">
+      <h2>Sign in</h2>
+      <p class="muted">This workspace is password protected.</p>
+      <label for="password">Password</label>
+      <input id="password" type="password" autocomplete="current-password" required autofocus />
+      <button class="primary" type="submit">Enter</button>
+      <p id="loginError" class="error" role="alert"></p>
+    </form>
+  </main>
+
+  <!-- App -->
+  <main id="appView" class="app hidden">
+    <section class="controls card">
+      <div class="control">
+        <label for="tone">Voice</label>
+        <select id="tone">
+          <option value="auto">Auto (match the text type)</option>
+          <option value="casual">Casual</option>
+          <option value="professional">Professional</option>
+          <option value="academic">Academic</option>
+          <option value="storyteller">Storyteller</option>
+        </select>
+      </div>
+      <label class="toggle" title="Two passes: rewrite, then audit the draft for anything that still reads as AI">
+        <input type="checkbox" id="deep" checked />
+        <span class="switch"></span>
+        <span>Deep pass</span>
+      </label>
+      <label class="toggle" title="Replace leftover em dashes and curly quotes (disabled when a voice sample is given)">
+        <input type="checkbox" id="strict" checked />
+        <span class="switch"></span>
+        <span>Strict cleanup</span>
+      </label>
+      <button id="sampleToggle" class="ghost" type="button" aria-expanded="false">+ Add a voice sample</button>
+      <div id="sampleWrap" class="sample hidden">
+        <label for="sample">Paste a paragraph or two of your own writing. The rewrite will match its rhythm, word choice and punctuation.</label>
+        <textarea id="sample" rows="4" maxlength="5000" placeholder="Something you wrote yourself…"></textarea>
+      </div>
+    </section>
+
+    <section class="panes">
+      <div class="pane card">
+        <div class="pane-head">
+          <h2>AI text</h2>
+          <div class="pane-tools">
+            <span id="inScore" class="score" hidden></span>
+            <button id="inViewToggle" class="ghost small" type="button">Show tells</button>
+          </div>
+        </div>
+        <textarea id="input" placeholder="Paste AI-generated text here…" spellcheck="true"></textarea>
+        <div id="inHighlight" class="rendered hidden" aria-live="polite"></div>
+        <div class="pane-foot">
+          <span id="inCount" class="muted">0 words</span>
+          <div class="actions">
+            <button id="clearBtn" class="ghost small" type="button">Clear</button>
+            <button id="goBtn" class="primary" type="button">Humanize</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="pane card">
+        <div class="pane-head">
+          <h2>Human version</h2>
+          <div class="pane-tools">
+            <span id="outScore" class="score" hidden></span>
+            <button id="outViewToggle" class="ghost small" type="button" disabled>Show tells</button>
+          </div>
+        </div>
+        <div id="output" class="rendered output empty" aria-live="polite">Your rewrite will appear here.</div>
+        <div class="pane-foot">
+          <span id="status" class="muted">Ready</span>
+          <div class="actions">
+            <button id="copyBtn" class="ghost small" type="button" disabled>Copy</button>
+            <button id="reuseBtn" class="ghost small" type="button" disabled title="Move the output into the input for another pass">Refine again</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="report" class="card report hidden">
+      <h2>Tell report</h2>
+      <p class="muted">Heuristic count of patterns from the humanizer rulebook. It flags writing habits, not authorship.</p>
+      <div class="report-grid">
+        <div><h3>Before</h3><ul id="beforeList"></ul></div>
+        <div><h3>After</h3><ul id="afterList"></ul></div>
+      </div>
+    </section>
+
+    <footer class="foot muted">
+      Rewriting rules from <a href="https://github.com/blader/humanizer" target="_blank" rel="noopener">blader/humanizer</a> (MIT),
+      based on Wikipedia's <a href="https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing" target="_blank" rel="noopener">Signs of AI writing</a>.
+      Powered by Gemini.
+    </footer>
+  </main>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

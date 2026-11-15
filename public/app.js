@@ -4,7 +4,8 @@ const $ = (id) => document.getElementById(id);
 const els = {
   loginView: $('loginView'), appView: $('appView'), loginForm: $('loginForm'), password: $('password'),
   loginError: $('loginError'), logoutBtn: $('logoutBtn'), tone: $('tone'), deep: $('deep'), strict: $('strict'),
-  sampleToggle: $('sampleToggle'), sampleWrap: $('sampleWrap'), sample: $('sample'), input: $('input'),
+  sampleToggle: $('sampleToggle'), sampleWrap: $('sampleWrap'), sample: $('sample'),
+  apiKeyWrap: $('apiKeyWrap'), apiKey: $('apiKey'), input: $('input'),
   inHighlight: $('inHighlight'), inScore: $('inScore'), inViewToggle: $('inViewToggle'), inCount: $('inCount'),
   clearBtn: $('clearBtn'), goBtn: $('goBtn'), output: $('output'), outScore: $('outScore'),
   outViewToggle: $('outViewToggle'), status: $('status'), copyBtn: $('copyBtn'), reuseBtn: $('reuseBtn'),
@@ -17,11 +18,15 @@ let showOutTells = false;
 let controller = null;
 
 // ---------- Session ----------
+els.apiKey.value = localStorage.getItem('hz_gemini_key') || '';
+els.apiKey.addEventListener('input', () => localStorage.setItem('hz_gemini_key', els.apiKey.value.trim()));
+
 async function checkSession() {
   try {
     const r = await fetch('/api/session');
     const j = await r.json();
     maxChars = j.maxChars || maxChars;
+    if (j.hasServerKey) els.apiKey.placeholder = 'Using server key (optional override)';
     setView(j.authed);
   } catch { setView(false); }
 }
@@ -161,7 +166,7 @@ async function humanize() {
   try {
     const r = await fetch('/api/humanize', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: controller.signal,
-      body: JSON.stringify({ text, sample, tone: els.tone.value, deep: els.deep.checked }),
+      body: JSON.stringify({ text, sample, tone: els.tone.value, deep: els.deep.checked, apiKey: els.apiKey.value.trim() }),
     });
     if (r.status === 401) { setView(false); return; }
     if (!r.ok || !r.body) {

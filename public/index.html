@@ -59,6 +59,10 @@
         <span>Strict cleanup</span>
       </label>
       <button id="sampleToggle" class="ghost" type="button" aria-expanded="false">+ Add a voice sample</button>
+      <div id="apiKeyWrap" class="control" style="margin-left:auto">
+        <label for="apiKey">Gemini API Key</label>
+        <input id="apiKey" type="password" placeholder="AIza…" autocomplete="off" style="width:210px" />
+      </div>
       <div id="sampleWrap" class="sample hidden">
         <label for="sample">Paste a paragraph or two of your own writing. The rewrite will match its rhythm, word choice and punctuation.</label>
         <textarea id="sample" rows="4" maxlength="5000" placeholder="Something you wrote yourself…"></textarea>

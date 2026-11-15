@@ -16,10 +16,10 @@ const MODEL = process.env.GEMINI_MODEL || 'gemini-4-hydrogen';
 const MAX_CHARS = Number(process.env.MAX_CHARS) || 15000;
 const IS_PROD = process.env.NODE_ENV === 'production';
 
-if (!process.env.GEMINI_API_KEY) console.warn('[warn] GEMINI_API_KEY is not set; /api/humanize will fail.');
+if (!process.env.GEMINI_API_KEY) console.warn('[warn] GEMINI_API_KEY is not set; clients can supply apiKey per request.');
 if (!APP_PASSWORD) console.warn('[warn] APP_PASSWORD is not set; logins are disabled.');
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const getClient = (apiKey) => new GoogleGenAI({ apiKey });
 
 // ---------- Skill loading (blader/humanizer, MIT) ----------
 const rawSkill = fs.readFileSync(path.join(__dirname, 'skills', 'humanizer', 'SKILL.md'), 'utf8');
@@ -98,7 +98,9 @@ const humanizeLimiter = rateLimit({ windowMs: 60 * 1000, limit: Number(process.e
 
 app.get('/healthz', (_req, res) => res.json({ ok: true }));
 
-app.get('/api/session', (req, res) => res.json({ authed: isAuthed(req), model: MODEL, maxChars: MAX_CHARS }));
+app.get('/api/session', (req, res) =>
+  res.json({ authed: isAuthed(req), model: MODEL, maxChars: MAX_CHARS, hasServerKey: Boolean(process.env.GEMINI_API_KEY) })
+);
 
 app.post('/api/login', loginLimiter, (req, res) => {
   if (!APP_PASSWORD) return res.status(503).json({ error: 'Server has no APP_PASSWORD configured.' });
@@ -119,9 +121,13 @@ app.post('/api/humanize', requireAuth, humanizeLimiter, async (req, res) => {
   const sample = String(req.body?.sample || '').trim().slice(0, 5000);
   const tone = TONES[req.body?.tone] ? req.body.tone : 'auto';
   const deep = Boolean(req.body?.deep);
+  const apiKey = String(req.body?.apiKey || process.env.GEMINI_API_KEY || '').trim();
 
   if (!text) return res.status(400).json({ error: 'Paste some text first.' });
   if (text.length > MAX_CHARS) return res.status(413).json({ error: `Text is too long (max ${MAX_CHARS} characters).` });
+  if (!apiKey) return res.status(400).json({ error: 'Add your Gemini API key in the toolbar (or set GEMINI_API_KEY on Railway).' });
+
+  const ai = getClient(apiKey);
 
   res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
   res.setHeader('Cache-Control', 'no-cache, no-transform');
